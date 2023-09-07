@@ -25,5 +25,6 @@ module.exports = {
   rules: {
     'import/no-unresolved': 0,
     indent: ['error', 2],
+    'require-jsdoc': 0,
   },
 };
