@@ -17,10 +17,17 @@ initializeApp();
 // https://firebase.google.com/docs/functions/typescript
 
 export const cfExecute = onRequest(async (request, response) => {
-  logger.info('Hello logs!', { structuredData: true });
+  logger.info('Executing the function...', { structuredData: true });
 
-  const moduleObj = await executeFromGcs();
+  try {
+    const moduleObj = await executeFromGcs();
+    // send the response
+    response.send(moduleObj.main());
+  } catch (error) {
+    logger.error('Error executing the function', error, {
+      structuredData: true,
+    });
+  }
 
-  // send the response
-  response.send(moduleObj.main());
+  logger.info('Function executed!', { structuredData: true });
 });
