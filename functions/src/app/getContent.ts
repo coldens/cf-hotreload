@@ -2,11 +2,11 @@ import { getStorage } from 'firebase-admin/storage';
 import { DownloadError } from './errors/DownloadError';
 
 /**
- * Gets the value of a file from GCS
+ * This function gets the content of a file in GCS and returns it as a string
  *
  * @param {string} fileName The name of the file to get the value of
  */
-export const getContent = async (fileName: string) => {
+export const getContent = async (fileName: string): Promise<string> => {
   /**
    * Get a reference to the storage service, which is used to create references in your storage bucket
    */

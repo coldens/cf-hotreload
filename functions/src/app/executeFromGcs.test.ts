@@ -1,7 +1,8 @@
-import { DownloadError } from './errors/DownloadError';
-import { executeFromGcs } from './executeFromGcs';
-import { JsParserError } from './errors/JsParserError';
 import { describe, expect, it, vitest } from 'vitest';
+import { DownloadError } from './errors/DownloadError';
+import { IsNotExecutableError } from './errors/IsNotExecutableError';
+import { JsParserError } from './errors/JsParserError';
+import { executeFromGcs } from './executeFromGcs';
 import * as contentModule from './getContent';
 
 describe('executeFromGcs', () => {
@@ -28,9 +29,6 @@ describe('executeFromGcs', () => {
   });
 
   it('should throw an EvalError if eval throws an error', async () => {
-    // Arrange
-    const expected = new JsParserError('Error evaluating the GCS-Hosted file');
-
     // Mock the getContent function to return invalid script content
     vitest
       .spyOn(contentModule, 'getContent')
@@ -40,6 +38,19 @@ describe('executeFromGcs', () => {
     const action = async () => await executeFromGcs();
 
     // Assert
-    await expect(action).rejects.toThrow(expected);
+    await expect(action).rejects.toBeInstanceOf(JsParserError);
+  });
+
+  it('should throw an IsNotExecutableError if the module does not implement the Executable interface', async () => {
+    // Mock the getContent function to return invalid script content
+    vitest
+      .spyOn(contentModule, 'getContent')
+      .mockResolvedValueOnce(`module.exports = {main: 'invalid'}`);
+
+    // Act
+    const action = async () => await executeFromGcs();
+
+    // Assert
+    await expect(action).rejects.toBeInstanceOf(IsNotExecutableError);
   });
 });
