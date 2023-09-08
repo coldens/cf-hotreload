@@ -1,9 +1,9 @@
 import { describe, expect, it, vitest } from 'vitest';
-import { DownloadError } from './errors/DownloadError';
-import { IsNotExecutableError } from './errors/IsNotExecutableError';
-import { JsParserError } from './errors/JsParserError';
-import { executeFromGcs } from './executeFromGcs';
-import * as contentModule from './getContent';
+import { DownloadError } from '@/app/errors/DownloadError';
+import { IsNotExecutableError } from '@/app/errors/IsNotExecutableError';
+import { JsParserError } from '@/app/errors/JsParserError';
+import { executeFromGcs } from '@/app/executeFromGcs';
+import * as contentModule from '@/app/getContent';
 
 describe('executeFromGcs', () => {
   it('should execute the script from GCS', async () => {

@@ -1,6 +1,6 @@
+import { DownloadError } from '@/app/errors/DownloadError';
+import { getContent } from '@/app/getContent';
 import { it, describe, vitest, expect, beforeEach, afterEach } from 'vitest';
-import { getContent } from './getContent';
-import { DownloadError } from './errors/DownloadError';
 
 describe('getContent', async () => {
   beforeEach(() => {
