@@ -19,6 +19,7 @@ export const cfExecute = onRequest(async (request, response) => {
     logger.error('Error executing the function', error, {
       structuredData: true,
     });
+    response.status(500).send('Error executing the function, see logs.');
   }
 
   logger.info('Function executed!', { structuredData: true });
