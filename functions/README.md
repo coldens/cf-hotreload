@@ -33,3 +33,11 @@ npm install
 # Deploy the function
 npm run deploy
 ```
+
+## Testing
+
+The library used for testing is [vitest](https://vitest.dev/guide/) and the tests are located in the `test` folder. To run the tests in watch mode, you can run the following command:
+
+```bash
+npm run test
+```
