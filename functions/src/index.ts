@@ -4,6 +4,7 @@ import { onRequest } from 'firebase-functions/v2/https';
 import { CloudExecuteFactory } from './app/executable/CloudExecuteFactory';
 import { CloudStorage } from './app/storage/CloudStorage';
 import { inject } from './utils/inject';
+import { of, switchMap } from 'rxjs';
 
 initializeApp();
 
@@ -18,10 +19,10 @@ export const cfExecute = onRequest((request, response) => {
 
   executableFactory
     .create$((request.query.fileName as string) || defaultFileName)
+    .pipe(switchMap((obj) => of(obj.main())))
     .subscribe({
-      next: async (moduleObj) => {
-        // send the response
-        response.send(await moduleObj.main());
+      next: (result) => {
+        response.send(result);
       },
       error: (error) => {
         logger.error('Error executing the function', error, {
