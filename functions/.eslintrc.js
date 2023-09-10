@@ -5,7 +5,6 @@ module.exports = {
     node: true,
   },
   extends: [
-    'eslint:recommended',
     'plugin:import/errors',
     'plugin:import/warnings',
     'plugin:import/typescript',
@@ -24,8 +23,8 @@ module.exports = {
   plugins: ['@typescript-eslint', 'import'],
   rules: {
     'import/no-unresolved': 0,
-    indent: ['error', 2],
     'require-jsdoc': 0,
     '@typescript-eslint/no-explicit-any': 'off',
+    'valid-jsdoc': 'off',
   },
 };

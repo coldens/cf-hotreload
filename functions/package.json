@@ -17,8 +17,11 @@
   "type": "commonjs",
   "main": "lib/index.js",
   "dependencies": {
+    "axios": "^1.5.0",
+    "date-fns": "^2.30.0",
     "firebase-admin": "^11.8.0",
-    "firebase-functions": "^4.3.1"
+    "firebase-functions": "^4.3.1",
+    "rxjs": "^7.8.1"
   },
   "devDependencies": {
     "@types/node": "^18.17.14",
