@@ -1,13 +1,13 @@
 import { initializeApp } from 'firebase-admin/app';
 import * as logger from 'firebase-functions/logger';
 import { onRequest } from 'firebase-functions/v2/https';
-import { ExecutableFactory } from './app/factory/ExecutableFactory';
+import { CloudExecuteFactory } from './app/executable/CloudExecuteFactory';
 import { CloudStorage } from './app/storage/CloudStorage';
 import { inject } from './utils/inject';
 
 initializeApp();
 
-const executableFactory = inject(ExecutableFactory, new CloudStorage());
+const executableFactory = inject(CloudExecuteFactory, new CloudStorage());
 const defaultFileName = process.env.CF_EXTERNAL_FILE_NAME as string;
 
 /**

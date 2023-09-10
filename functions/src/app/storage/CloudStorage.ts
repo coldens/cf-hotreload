@@ -2,7 +2,7 @@ import { App } from 'firebase-admin/app';
 import { getStorage } from 'firebase-admin/storage';
 import { Observable, catchError, from, lastValueFrom, map } from 'rxjs';
 import { DownloadError } from '../errors/DownloadError';
-import { IStorage } from '../contracts/IStorage';
+import { IStorage } from './IStorage';
 
 /**
  * This class is a wrapper around the firebase-admin/storage module
@@ -11,8 +11,8 @@ import { IStorage } from '../contracts/IStorage';
 export class CloudStorage implements IStorage {
   private readonly storage: ReturnType<typeof getStorage>;
 
-  constructor(app?: App) {
-    this.storage = getStorage(app);
+  constructor(app?: App, getStorageFn = getStorage) {
+    this.storage = getStorageFn(app);
   }
 
   /**

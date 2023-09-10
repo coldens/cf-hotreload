@@ -9,7 +9,8 @@
     "start": "npm run shell",
     "deploy": "firebase deploy --only functions",
     "logs": "firebase functions:log",
-    "test": "vitest"
+    "test": "vitest",
+    "test:cov": "vitest run --coverage"
   },
   "engines": {
     "node": "18"
@@ -27,6 +28,7 @@
     "@types/node": "^18.17.14",
     "@typescript-eslint/eslint-plugin": "^6.6.0",
     "@typescript-eslint/parser": "^6.6.0",
+    "@vitest/coverage-v8": "^0.34.4",
     "eslint": "^8.9.0",
     "eslint-config-google": "^0.14.0",
     "eslint-config-prettier": "^9.0.0",
