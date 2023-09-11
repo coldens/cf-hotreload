@@ -14,6 +14,15 @@ npm install
 npm run serve
 ```
 
+Make sure to create your own `.env` file with the following variables:
+
+```bash
+GCLOUD_BUCKET_NAME=name-of-the-bucket
+CF_EXTERNAL_FILE_NAME=name-of-the-file.js
+```
+
+There is a sample file in the root folder called `.env.example` that you can use as a template.
+
 ## Local development + Storage emulator
 
 To run the local storage emulator, you need to have the [Firebase CLI](https://firebase.google.com/docs/cli/) installed. Then, go to the parent folder, configure storage.rules and run the following commands:
