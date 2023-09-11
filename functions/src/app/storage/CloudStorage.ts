@@ -1,4 +1,3 @@
-import { App } from 'firebase-admin/app';
 import { getStorage } from 'firebase-admin/storage';
 import { Observable, catchError, from, lastValueFrom, map } from 'rxjs';
 import { DownloadError } from '../errors/DownloadError';
@@ -9,11 +8,7 @@ import { IStorage } from './IStorage';
  * to get files from GCS.
  */
 export class CloudStorage implements IStorage {
-  private readonly storage: ReturnType<typeof getStorage>;
-
-  constructor(app?: App, getStorageFn = getStorage) {
-    this.storage = getStorageFn(app);
-  }
+  constructor(private readonly storage = getStorage()) {}
 
   /**
    * This function gets the content of a file in GCS and returns it as a buffer

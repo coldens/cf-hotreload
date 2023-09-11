@@ -1,12 +1,13 @@
 import { Observable, lastValueFrom, map } from 'rxjs';
-import { IExecutable } from './IExecutable';
-import { IStorage } from '../storage/IStorage';
 import { IsNotExecutableError } from '../errors/IsNotExecutableError';
+import { IStorage } from '../storage/IStorage';
+import { IExecutable } from './IExecutable';
+import { IExecuteFactory } from './IExecuteFactory';
 
 /**
  * Factory that creates Executable objects from js files hosted in GCS
  */
-export class CloudExecuteFactory {
+export class CloudExecuteFactory implements IExecuteFactory<IExecutable> {
   constructor(private readonly storage: IStorage) {}
 
   /**

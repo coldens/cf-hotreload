@@ -12,8 +12,7 @@ describe('CloudStorage', () => {
   };
 
   const cloudStorage: CloudStorage = new CloudStorage(
-    undefined,
-    () => mockStorage as unknown as Storage,
+    mockStorage as unknown as Storage,
   );
 
   describe('getFile$', () => {
