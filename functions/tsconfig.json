@@ -17,6 +17,10 @@
   "include": [
     "src",
     "test",
-    "vitest.config.ts"
+    "vitest.config.ts",
+    ".eslintrc.js"
+  ],
+  "exclude": [
+    "coverage",
   ]
 }
