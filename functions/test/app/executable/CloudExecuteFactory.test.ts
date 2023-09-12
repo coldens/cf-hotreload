@@ -1,7 +1,7 @@
-import { IsNotExecutableError } from '@/app/errors/IsNotExecutableError';
-import { CloudExecuteFactory } from '@/app/executable/CloudExecuteFactory';
-import { IExecutable } from '@/app/executable/IExecutable';
-import { StorageFile } from '@/app/storage/StorageFile';
+import { IsNotExecutableError } from '@/app/errors/IsNotExecutableError.js';
+import { CloudExecuteFactory } from '@/app/executable/CloudExecuteFactory.js';
+import { IExecutable } from '@/app/executable/IExecutable.js';
+import { StorageFile } from '@/app/storage/StorageFile.js';
 import { lastValueFrom, of } from 'rxjs';
 import { describe, expect, it, vitest } from 'vitest';
 

@@ -1,4 +1,4 @@
-import { inject } from '@/utils/inject';
+import { inject } from '@/utils/inject.js';
 import { describe, expect, it } from 'vitest';
 
 class TestClass {

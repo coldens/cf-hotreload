@@ -20,12 +20,14 @@ module.exports = {
   ignorePatterns: [
     '/lib/**/*', // Ignore built files.
     '/coverage/**/*', // Ignore built files.
+    '/tmp/**/*', // Ignore built files.
   ],
   plugins: ['@typescript-eslint', 'import'],
   rules: {
     'import/no-unresolved': 0,
     'require-jsdoc': 0,
     '@typescript-eslint/no-explicit-any': 'off',
+    '@typescript-eslint/no-var-requires': 'off',
     'valid-jsdoc': 'off',
   },
 };
