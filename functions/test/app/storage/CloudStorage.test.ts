@@ -1,6 +1,8 @@
 import { DownloadError } from '@/app/errors/DownloadError';
 import { CloudStorage } from '@/app/storage/CloudStorage';
+import { StorageFile } from '@/app/storage/StorageFile';
 import { Storage } from 'firebase-admin/storage';
+import { lastValueFrom } from 'rxjs';
 import { describe, expect, it, vitest } from 'vitest';
 
 describe('CloudStorage', () => {
@@ -16,41 +18,38 @@ describe('CloudStorage', () => {
   );
 
   describe('getFile$', () => {
-    it('should return a buffer of the file content', () =>
-      new Promise<void>((done) => {
-        const mockDownload = Buffer.from('test content');
-        const mockFile = {
-          download: vitest.fn().mockResolvedValue([mockDownload]),
-        };
-        mockBucket.file.mockReturnValue(mockFile);
+    it('should return a buffer of the file content', async () => {
+      const mockDownload = new StorageFile(
+        [Buffer.from('test content')],
+        'test-file',
+      );
+      const mockFile = {
+        download: vitest.fn().mockResolvedValue([mockDownload]),
+      };
+      mockBucket.file.mockReturnValue(mockFile);
 
-        cloudStorage.getFile$('test-file').subscribe((result) => {
-          expect(result).toEqual(mockDownload);
-          done();
-        });
-      }));
+      const result = await lastValueFrom(cloudStorage.getFile$('test-file'));
+      expect(result).toEqual(mockDownload);
+    });
 
-    it('should throw a DownloadError if the file download fails', () =>
-      new Promise<void>((done) => {
-        const mockError = new Error('test error');
-        const mockFile = {
-          download: vitest.fn().mockRejectedValue(mockError),
-        };
-        mockBucket.file.mockReturnValue(mockFile);
+    it('should throw a DownloadError if the file download fails', async () => {
+      const mockError = new Error('test error');
+      const mockFile = {
+        download: vitest.fn().mockRejectedValue(mockError),
+      };
+      mockBucket.file.mockReturnValue(mockFile);
 
-        cloudStorage.getFile$('test-file').subscribe({
-          error: (error) => {
-            expect(error).toBeInstanceOf(DownloadError);
-            expect(error.cause).toBe(mockError);
-            done();
-          },
-        });
-      }));
+      const result = () => lastValueFrom(cloudStorage.getFile$('test-file'));
+      await expect(result).rejects.toBeInstanceOf(DownloadError);
+    });
   });
 
   describe('getFile', () => {
     it('should return a promise that resolves to a buffer of the file content', async () => {
-      const mockDownload = Buffer.from('test content');
+      const mockDownload = new StorageFile(
+        [Buffer.from('test content')],
+        'test-file',
+      );
       const mockFile = {
         download: vitest.fn().mockResolvedValue([mockDownload]),
       };
@@ -67,9 +66,8 @@ describe('CloudStorage', () => {
       };
       mockBucket.file.mockReturnValue(mockFile);
 
-      await expect(cloudStorage.getFile('test-file')).rejects.toBeInstanceOf(
-        DownloadError,
-      );
+      const result = () => cloudStorage.getFile('test-file');
+      await expect(result).rejects.toBeInstanceOf(DownloadError);
     });
   });
 });

@@ -1,4 +1,4 @@
-import { Observable, lastValueFrom, map } from 'rxjs';
+import { Observable, lastValueFrom, map, switchMap } from 'rxjs';
 import { IsNotExecutableError } from '../errors/IsNotExecutableError';
 import { IStorage } from '../storage/IStorage';
 import { IExecutable } from './IExecutable';
@@ -15,7 +15,7 @@ export class CloudExecuteFactory implements IExecuteFactory<IExecutable> {
    */
   create$(fileName: string, bucket?: string): Observable<IExecutable> {
     return this.storage.getFile$(fileName, bucket).pipe(
-      map((value) => value.toString('utf-8')),
+      switchMap((value) => value.text()),
       map((value) => {
         const obj: IExecutable = eval(value);
 
