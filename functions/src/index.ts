@@ -5,20 +5,39 @@ import {
   onObjectDeleted,
   onObjectFinalized,
 } from 'firebase-functions/v2/storage';
-import { unlink, writeFile } from 'fs/promises';
 import { switchMap } from 'rxjs';
 import { CloudExecuteFactory } from './app/executable/CloudExecuteFactory';
 import { CloudStorage } from './app/storage/CloudStorage';
-import path = require('path');
-import { existsSync } from 'fs';
+import { TempManager } from './app/temp/TempManager';
+import { TempExecuteFactory } from './app/executable/TempExecuteFactory';
 
 initializeApp();
 
 const storage = new CloudStorage();
-const executableFactory = new CloudExecuteFactory(storage);
+const cloudExecute = new CloudExecuteFactory(storage);
+const tempManager = new TempManager(storage);
+const tempExecute = new TempExecuteFactory(tempManager);
 
 const defaultFileName = process.env.CF_EXTERNAL_FILE_NAME as string;
 const defaultBucket = process.env.GCLOUD_BUCKET_NAME as string;
+
+tempManager
+  .syncFolder()
+  .then(() => {
+    logger.info('Folder synced!');
+  })
+  .catch((error) => {
+    logger.error('Error syncing folder', error);
+  });
+
+export const cfLocalExecute = onRequest(async (request, response) => {
+  logger.info('Executing the function...');
+  const fileName = (request.query.fileName as string) || defaultFileName;
+  const obj = await tempExecute.create(fileName);
+  const result = await obj.main();
+  response.send(result);
+  logger.info('Function executed!');
+});
 
 /**
  * Cloud function that executes a GCS-hosted script
@@ -29,7 +48,7 @@ export const cfExecute = onRequest((request, response) => {
   const fileName = (request.query.fileName as string) || defaultFileName;
   const bucketName = (request.query.bucket as string) || defaultBucket;
 
-  executableFactory
+  cloudExecute
     .create$(fileName, bucketName)
     .pipe(switchMap(async (obj) => obj.main()))
     .subscribe({
@@ -49,14 +68,13 @@ export const cfExecute = onRequest((request, response) => {
 export const downloadFile = onObjectFinalized(
   { bucket: defaultBucket },
   async (event) => {
-    const file = await storage.getFile(event.data.name, event.bucket);
-    const tempFolder = path.resolve('./temp');
-    const filePath = path.join(tempFolder, event.data.name);
-
     try {
-      await writeFile(filePath, file.stream());
+      await tempManager.writeFile({
+        fileName: event.data.name,
+        bucketName: event.data.bucket,
+      });
     } catch (e) {
-      logger.error(`Error writing file ${filePath}`, e);
+      logger.error(`Error downloading file ${event.data.name}`, e);
     }
   },
 );
@@ -64,21 +82,10 @@ export const downloadFile = onObjectFinalized(
 export const deleteFile = onObjectDeleted(
   { bucket: defaultBucket },
   async (event) => {
-    logger.info(`File ${event.data.name} deleted.`);
-    const tempFolder = path.resolve('./temp');
-    const filePath = path.join(tempFolder, event.data.name);
-
-    if (!existsSync(filePath)) {
-      logger.info(`File ${filePath} does not exist.`);
-      return;
-    }
-
     try {
-      logger.info(`Deleting file ${filePath}`);
-      await unlink(filePath);
-      logger.info(`File ${filePath} deleted.`);
+      await tempManager.deleteFile({ fileName: event.data.name });
     } catch (e) {
-      logger.error(`Error deleting file ${filePath}`, e);
+      logger.error(`Error downloading file ${event.data.name}`, e);
     }
   },
 );

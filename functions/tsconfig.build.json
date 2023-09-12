@@ -7,6 +7,7 @@
     "test",
     "dist",
     "lib",
-    "vitest.config.ts"
+    "vitest.config.ts",
+    "hot-reload"
   ]
 }

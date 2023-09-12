@@ -20,7 +20,7 @@ module.exports = {
   ignorePatterns: [
     '/lib/**/*', // Ignore built files.
     '/coverage/**/*', // Ignore built files.
-    '/tmp/**/*', // Ignore built files.
+    '/hot-reload/**/*', // Ignore built files.
   ],
   plugins: ['@typescript-eslint', 'import'],
   rules: {

@@ -7,7 +7,7 @@ import { IExecuteFactory } from './IExecuteFactory';
 /**
  * Factory that creates Executable objects from js files hosted in GCS
  */
-export class CloudExecuteFactory implements IExecuteFactory<IExecutable> {
+export class CloudExecuteFactory implements IExecuteFactory {
   constructor(private readonly storage: IStorage) {}
 
   /**
