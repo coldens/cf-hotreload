@@ -5,7 +5,7 @@ import {
   from,
   lastValueFrom,
   map,
-  switchMap,
+  mergeMap,
   toArray,
 } from 'rxjs';
 import { DownloadError } from '../errors/DownloadError';
@@ -46,20 +46,14 @@ export class CloudStorage implements IStorage {
     const bucket = this.getBucket(buckeName);
 
     return from(bucket.getFiles()).pipe(
-      catchError((error) => {
-        throw new DownloadError(
-          'Error getting the files from the GCS bucket',
-          error as Error,
-        );
-      }),
-      switchMap((download) => from(download[0])),
-      switchMap(async (file) => {
+      mergeMap((download) => from(download[0])),
+      mergeMap(async (file) => {
         const download = await file.download();
         return new StorageFile(download, file.name);
       }),
       catchError((error) => {
         throw new DownloadError(
-          'Error downloading the GCS-Hosted file',
+          'Error getting the files from the GCS bucket',
           error as Error,
         );
       }),
