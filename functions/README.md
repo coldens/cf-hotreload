@@ -8,10 +8,10 @@ To run the project locally, you need to have the [Firebase CLI](https://firebase
 
 ```bash
 # Install dependencies
-npm install
+pnpm install
 
 # Run the function locally
-npm run serve
+pnpm run serve
 ```
 
 Make sure to create your own `.env` file with the following variables:
@@ -37,10 +37,10 @@ To deploy the function to Firebase, you need to have the [Firebase CLI](https://
 
 ```bash
 # Install dependencies
-npm install
+pnpm install
 
 # Deploy the function
-npm run deploy
+pnpm run deploy
 ```
 
 ## Testing
@@ -48,5 +48,5 @@ npm run deploy
 The library used for testing is [vitest](https://vitest.dev/guide/) and the tests are located in the `test` folder. To run the tests in watch mode, you can run the following command:
 
 ```bash
-npm run test
+pnpm run test
 ```

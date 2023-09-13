@@ -21,14 +21,14 @@ const tempExecute = new TempExecuteFactory(tempManager);
 const defaultFileName = process.env.CF_EXTERNAL_FILE_NAME as string;
 const defaultBucket = process.env.GCLOUD_BUCKET_NAME as string;
 
-tempManager
-  .syncFolder()
-  .then(() => {
+export async function syncFolder() {
+  try {
+    await tempManager.syncFolder();
     logger.info('Folder synced!');
-  })
-  .catch((error) => {
+  } catch (error) {
     logger.error('Error syncing folder', error);
-  });
+  }
+}
 
 export const cfLocalExecute = onRequest(async (request, response) => {
   logger.info('Executing the function...');
@@ -65,27 +65,12 @@ export const cfExecute = onRequest((request, response) => {
     });
 });
 
-export const downloadFile = onObjectFinalized(
-  { bucket: defaultBucket },
-  async (event) => {
-    try {
-      await tempManager.writeFile({
-        fileName: event.data.name,
-        bucketName: event.data.bucket,
-      });
-    } catch (e) {
-      logger.error(`Error downloading file ${event.data.name}`, e);
-    }
-  },
+export const downloadFile = onObjectFinalized({ bucket: defaultBucket }, () =>
+  syncFolder(),
 );
 
-export const deleteFile = onObjectDeleted(
-  { bucket: defaultBucket },
-  async (event) => {
-    try {
-      await tempManager.deleteFile({ fileName: event.data.name });
-    } catch (e) {
-      logger.error(`Error downloading file ${event.data.name}`, e);
-    }
-  },
+export const deleteFile = onObjectDeleted({ bucket: defaultBucket }, () =>
+  syncFolder(),
 );
+
+syncFolder();

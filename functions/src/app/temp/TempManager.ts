@@ -1,7 +1,9 @@
 import path = require('node:path');
 import { existsSync } from 'node:fs';
-import { mkdir, unlink, writeFile } from 'node:fs/promises';
+import { mkdir, rm, unlink, writeFile } from 'node:fs/promises';
 import { IStorage } from '../storage/IStorage';
+import { tmpdir } from 'node:os';
+import * as logger from 'firebase-functions/logger';
 
 type FileParams = {
   fileName: string;
@@ -10,7 +12,7 @@ type FileParams = {
 };
 
 export class TempManager {
-  readonly tempFolder = path.resolve('./hot-reload');
+  readonly tempFolder = path.join(tmpdir(), '/hot-reload');
 
   constructor(private readonly storage: IStorage) {}
 
@@ -28,15 +30,18 @@ export class TempManager {
     }
 
     await writeFile(filePath, fileContent ?? file.stream());
+    logger.info('File written', { fileName });
   }
 
   async deleteFile({ fileName }: FileParams) {
     const filePath = this.getFilePath(fileName);
     await unlink(filePath);
+    logger.info('File deleted', { fileName });
   }
 
   async syncFolder() {
     const files = await this.storage.getFiles();
+    await rm(this.tempFolder, { recursive: true, force: true });
 
     for (const file of files) {
       const fileContent = await file.text();
