@@ -1,6 +1,6 @@
-import { DownloadError } from '@/app/errors/DownloadError.js';
-import { CloudStorage } from '@/app/storage/CloudStorage.js';
-import { StorageFile } from '@/app/storage/StorageFile.js';
+import { DownloadError } from '@/app/errors/DownloadError';
+import { CloudStorage } from '@/app/storage/CloudStorage';
+import { StorageFile } from '@/app/storage/StorageFile';
 import { Storage } from 'firebase-admin/storage';
 import { lastValueFrom, of } from 'rxjs';
 import { beforeEach, describe, expect, it, vitest } from 'vitest';
