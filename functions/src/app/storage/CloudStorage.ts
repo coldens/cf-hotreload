@@ -6,11 +6,13 @@ import {
   lastValueFrom,
   map,
   mergeMap,
+  switchMap,
   toArray,
 } from 'rxjs';
 import { DownloadError } from '../errors/DownloadError';
 import { IStorage } from './IStorage';
 import { StorageFile } from './StorageFile';
+import { UploadError } from '../errors/UploadError';
 
 /**
  * This class is a wrapper around the firebase-admin/storage module
@@ -18,6 +20,40 @@ import { StorageFile } from './StorageFile';
  */
 export class CloudStorage implements IStorage {
   constructor(private readonly storage = getStorage()) {}
+
+  /**
+   * Uploads a file to GCS
+   */
+  upload$(
+    file: StorageFile,
+    folder: string,
+    bucketName?: string,
+  ): Observable<void> {
+    const bucket = this.getBucket(bucketName);
+
+    return from(file.text()).pipe(
+      switchMap(async (text) => {
+        await bucket.file(`${folder}/${file.fileName}`).save(text);
+      }),
+      catchError((error) => {
+        throw new UploadError(
+          'Error uploading the file to the GCS bucket',
+          error as Error,
+        );
+      }),
+    );
+  }
+
+  /**
+   * Wraps {@link upload$} in a promise
+   */
+  upload(
+    file: StorageFile,
+    folder: string,
+    bucketName?: string,
+  ): Promise<void> {
+    return lastValueFrom(this.upload$(file, folder, bucketName));
+  }
 
   /**
    * Gets the content of a file in GCS and returns it as a buffer

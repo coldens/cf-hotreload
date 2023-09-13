@@ -3,7 +3,7 @@ import { IsNotExecutableError } from '../errors/IsNotExecutableError';
 import { IStorage } from '../storage/IStorage';
 import { IExecutable } from './IExecutable';
 import { IExecuteFactory } from './IExecuteFactory';
-import { DEFAULT_KEY } from '../consts/DEFAULT_KEY';
+import { DEFAULT_KEY } from '../../consts/DEFAULT_KEY';
 
 type CacheType = Record<string, Record<string, string>>;
 

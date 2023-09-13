@@ -8,45 +8,22 @@ import {
 import { switchMap } from 'rxjs';
 import { CloudExecuteFactory } from './app/executable/CloudExecuteFactory';
 import { CloudStorage } from './app/storage/CloudStorage';
-import { TempManager } from './app/temp/TempManager';
-import { TempExecuteFactory } from './app/executable/TempExecuteFactory';
+import { DEFAULT_BUCKET_NAME } from './consts/DEFAULT_BUCKET';
+import { DEFAULT_FILE_NAME } from './consts/DEFAULT_FILE_NAME';
+import { syncFolder } from './syncFolder';
 
 initializeApp();
-
-const storage = new CloudStorage();
-const cloudExecute = new CloudExecuteFactory(storage);
-const tempManager = new TempManager(storage);
-const tempExecute = new TempExecuteFactory(tempManager);
-
-const defaultFileName = process.env.CF_EXTERNAL_FILE_NAME as string;
-const defaultBucket = process.env.GCLOUD_BUCKET_NAME as string;
-
-export async function syncFolder() {
-  try {
-    await tempManager.syncFolder();
-    logger.info('Folder synced!');
-  } catch (error) {
-    logger.error('Error syncing folder', error);
-  }
-}
-
-export const cfLocalExecute = onRequest(async (request, response) => {
-  logger.info('Executing the function...');
-  const fileName = (request.query.fileName as string) || defaultFileName;
-  const obj = await tempExecute.create(fileName);
-  const result = await obj.main();
-  response.send(result);
-  logger.info('Function executed!');
-});
 
 /**
  * Cloud function that executes a GCS-hosted script
  */
 export const cfExecute = onRequest((request, response) => {
+  const cloudExecute = new CloudExecuteFactory(new CloudStorage());
+
   logger.info('Executing the function...');
 
-  const fileName = (request.query.fileName as string) || defaultFileName;
-  const bucketName = (request.query.bucket as string) || defaultBucket;
+  const fileName = (request.query.fileName as string) || DEFAULT_FILE_NAME;
+  const bucketName = (request.query.bucket as string) || DEFAULT_BUCKET_NAME;
 
   cloudExecute
     .create$(fileName, bucketName)
@@ -65,12 +42,12 @@ export const cfExecute = onRequest((request, response) => {
     });
 });
 
-export const downloadFile = onObjectFinalized({ bucket: defaultBucket }, () =>
-  syncFolder(),
+export const objectFinalizedListener = onObjectFinalized(
+  { bucket: DEFAULT_BUCKET_NAME },
+  () => syncFolder(),
 );
 
-export const deleteFile = onObjectDeleted({ bucket: defaultBucket }, () =>
-  syncFolder(),
+export const objectDeletedListener = onObjectDeleted(
+  { bucket: DEFAULT_BUCKET_NAME },
+  () => syncFolder(),
 );
-
-syncFolder();

@@ -2,7 +2,6 @@ import path = require('node:path');
 import { existsSync } from 'node:fs';
 import { mkdir, rm, unlink, writeFile } from 'node:fs/promises';
 import { IStorage } from '../storage/IStorage';
-import { tmpdir } from 'node:os';
 import * as logger from 'firebase-functions/logger';
 
 type FileParams = {
@@ -12,7 +11,7 @@ type FileParams = {
 };
 
 export class TempManager {
-  readonly tempFolder = path.join(tmpdir(), '/hot-reload');
+  readonly tempFolder = path.resolve('./hot-reload/source');
 
   constructor(private readonly storage: IStorage) {}
 
@@ -26,7 +25,7 @@ export class TempManager {
 
     // validate if directory exists
     if (!existsSync(this.tempFolder)) {
-      await mkdir(this.tempFolder);
+      await mkdir(this.tempFolder, { recursive: true });
     }
 
     await writeFile(filePath, fileContent ?? file.stream());
