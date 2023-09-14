@@ -1,11 +1,12 @@
 import * as esbuild from 'esbuild';
+import { getStorage } from 'firebase-admin/storage';
 import { mkdir, readFile } from 'node:fs/promises';
-import path = require('node:path');
+import { rimraf } from 'rimraf';
 import { COMPILED_FILE_NAME } from '../../consts/COMPILED_FILE_NAME.js';
 import { CompileError } from '../errors/CompileError.js';
+import { DownloadError } from '../errors/DownloadError.js';
 import { UploadError } from '../errors/UploadError.js';
-import { getStorage } from 'firebase-admin/storage';
-import { rimraf } from 'rimraf';
+import path = require('node:path');
 
 export class CloudCompiler {
   readonly parent = path.resolve('./hot-reload');
@@ -59,7 +60,7 @@ export class CloudCompiler {
       const fileData = await readFile(compiledFile);
       await this.bucket.file('out/' + COMPILED_FILE_NAME).save(fileData);
     } catch (err) {
-      throw new UploadError('Failed to upload', err as Error);
+      throw new DownloadError('Failed to upload', err as Error);
     }
   }
 }

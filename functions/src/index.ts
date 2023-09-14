@@ -1,3 +1,4 @@
+import { caching } from 'cache-manager';
 import { initializeApp } from 'firebase-admin/app';
 import * as logger from 'firebase-functions/logger';
 import { onRequest } from 'firebase-functions/v2/https';
@@ -5,7 +6,6 @@ import {
   onObjectDeleted,
   onObjectFinalized,
 } from 'firebase-functions/v2/storage';
-import { switchMap } from 'rxjs';
 import { CloudExecuteFactory } from './app/executable/CloudExecuteFactory.js';
 import { CloudStorage } from './app/storage/CloudStorage.js';
 import { syncAndCompile } from './compile.js';
@@ -14,48 +14,53 @@ import { DEFAULT_BUCKET_NAME } from './consts/DEFAULT_BUCKET.js';
 
 initializeApp();
 
-const cloudExecute = new CloudExecuteFactory(new CloudStorage());
+let cloudExecute: CloudExecuteFactory;
+
+/**
+ * Initializes the CloudExecuteFactory
+ */
+const init = async () => {
+  const storage = new CloudStorage();
+  const memoryCache = await caching('memory', {
+    max: 100,
+    ttl: 60_000, // milliseconds
+  });
+
+  cloudExecute = new CloudExecuteFactory(storage, memoryCache);
+};
 
 /**
  * Cloud function that executes a GCS-hosted script
  */
-export const cfExecute = onRequest((request, response) => {
+export const cfExecute = onRequest(async (request, response) => {
   logger.info('Executing the function...');
+
+  if (!cloudExecute) {
+    await init();
+  }
 
   const fileName =
     <string>request.query.fileName || `out/${COMPILED_FILE_NAME}`;
   const bucketName = <string>request.query.bucket || DEFAULT_BUCKET_NAME;
 
-  cloudExecute
-    .create$(fileName, bucketName)
-    .pipe(switchMap(async (obj) => obj.main()))
-    .subscribe({
-      next: (result) => {
-        response.send(result);
-      },
-      error: (error) => {
-        logger.error('Error executing the function', error);
-        response.status(500).send('Error executing the function, see logs.');
-      },
-      complete: () => {
-        logger.info('Function executed!');
-      },
-    });
+  try {
+    const obj = await cloudExecute.create(fileName, bucketName);
+    const main = async () => obj.main(request.body);
+    response.send(await main());
+  } catch (error) {
+    logger.error('Error executing the function', error);
+    response.status(500).send('Error executing the function, see logs.');
+  }
+
+  logger.info('Function executed!');
 });
 
-export const objectFinalizedListener = onObjectFinalized(
-  { bucket: DEFAULT_BUCKET_NAME },
-  () => refreshCache(),
-);
-
-export const objectDeletedListener = onObjectDeleted(
-  { bucket: DEFAULT_BUCKET_NAME },
-  () => refreshCache(),
-);
-
+/**
+ * Cloud function that syncs and compiles the source code
+ */
 export const runSyncAndCompile = onRequest(async (req, res) => {
   try {
-    await refreshCache();
+    await syncAndCompile();
     res.send({ success: true });
   } catch (error) {
     logger.error('Error syncing and compiling', error);
@@ -63,7 +68,30 @@ export const runSyncAndCompile = onRequest(async (req, res) => {
   }
 });
 
-async function refreshCache() {
-  await syncAndCompile();
-  cloudExecute.clearCache();
-}
+/**
+ * Cloud function that syncs and compiles the source code
+ */
+export const objectFinalizedListener = onObjectFinalized(
+  { bucket: DEFAULT_BUCKET_NAME },
+  async () => {
+    try {
+      await syncAndCompile();
+    } catch (error) {
+      logger.error('Error syncing and compiling', error);
+    }
+  },
+);
+
+/**
+ * Cloud function that syncs and compiles the source code
+ */
+export const objectDeletedListener = onObjectDeleted(
+  { bucket: DEFAULT_BUCKET_NAME },
+  async () => {
+    try {
+      await syncAndCompile();
+    } catch (error) {
+      logger.error('Error syncing and compiling', error);
+    }
+  },
+);
