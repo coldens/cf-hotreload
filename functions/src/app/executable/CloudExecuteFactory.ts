@@ -53,4 +53,8 @@ export class CloudExecuteFactory implements IExecuteFactory {
   create(fileName: string, bucket?: string): Promise<IExecutable> {
     return lastValueFrom(this.create$(fileName, bucket));
   }
+
+  async clearCache() {
+    await this.cache.reset();
+  }
 }

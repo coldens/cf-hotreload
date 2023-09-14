@@ -76,6 +76,10 @@ export const objectFinalizedListener = onObjectFinalized(
   async () => {
     try {
       await syncAndCompile();
+
+      if (cloudExecute) {
+        await cloudExecute.clearCache();
+      }
     } catch (error) {
       logger.error('Error syncing and compiling', error);
     }
@@ -90,6 +94,10 @@ export const objectDeletedListener = onObjectDeleted(
   async () => {
     try {
       await syncAndCompile();
+
+      if (cloudExecute) {
+        await cloudExecute.clearCache();
+      }
     } catch (error) {
       logger.error('Error syncing and compiling', error);
     }

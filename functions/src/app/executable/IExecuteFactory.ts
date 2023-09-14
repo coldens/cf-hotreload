@@ -5,10 +5,12 @@ export interface IExecuteFactory {
   /**
    * Creates an executable object from a file
    */
-  create$: (fileName: string, bucket?: string) => Observable<IExecutable>;
+  create$(fileName: string, bucket?: string): Observable<IExecutable>;
 
   /**
    * Wraps create$ in a promise
    */
-  create: (fileName: string, bucket?: string) => Promise<IExecutable>;
+  create(fileName: string, bucket?: string): Promise<IExecutable>;
+
+  clearCache(): Promise<void>;
 }

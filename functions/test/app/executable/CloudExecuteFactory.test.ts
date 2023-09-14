@@ -2,7 +2,6 @@ import { IsNotExecutableError } from '@/app/errors/IsNotExecutableError';
 import { CloudExecuteFactory } from '@/app/executable/CloudExecuteFactory';
 import { IExecutable } from '@/app/executable/IExecutable';
 import { StorageFile } from '@/app/storage/StorageFile';
-import { caching } from 'cache-manager';
 import { lastValueFrom, of } from 'rxjs';
 import { beforeEach, describe, expect, it, vitest } from 'vitest';
 
@@ -13,11 +12,15 @@ describe('CloudExecuteFactory', () => {
     getFiles$: vitest.fn(),
     getFiles: vitest.fn(),
   };
+  const cache = {
+    get: vitest.fn().mockResolvedValue(undefined),
+    set: vitest.fn().mockResolvedValue(undefined),
+    reset: vitest.fn().mockResolvedValue(undefined),
+  };
   let factory: CloudExecuteFactory;
 
   beforeEach(async () => {
-    const cache = await caching('memory');
-    factory = new CloudExecuteFactory(storage, cache);
+    factory = new CloudExecuteFactory(storage, cache as any);
   });
 
   describe('create$', () => {
@@ -53,6 +56,14 @@ describe('CloudExecuteFactory', () => {
 
       const executable = await factory.create('test.js');
       expect(executable).toEqual(expectedExecutable);
+    });
+  });
+
+  describe('clearCache', () => {
+    it('should clear the cache', async () => {
+      const spy = vitest.spyOn(cache, 'reset');
+      await factory.clearCache();
+      expect(spy).toHaveBeenCalled();
     });
   });
 });
