@@ -56,7 +56,7 @@ export const cfExecute = onRequest(async (request, response) => {
 });
 
 /**
- * Cloud function that syncs and compiles the source code
+ * Cloud function that syncs and compiles the source code manually
  */
 export const runSyncAndCompile = onRequest(async (req, res) => {
   try {
@@ -73,15 +73,17 @@ export const runSyncAndCompile = onRequest(async (req, res) => {
  */
 export const objectFinalizedListener = onObjectFinalized(
   { bucket: DEFAULT_BUCKET_NAME },
-  async () => {
-    try {
-      await syncAndCompile();
+  async (event) => {
+    if (event.data.name.includes('source')) {
+      try {
+        await syncAndCompile();
 
-      if (cloudExecute) {
-        await cloudExecute.clearCache();
+        if (cloudExecute) {
+          await cloudExecute.clearCache();
+        }
+      } catch (error) {
+        logger.error('Error syncing and compiling', error);
       }
-    } catch (error) {
-      logger.error('Error syncing and compiling', error);
     }
   },
 );
@@ -91,15 +93,17 @@ export const objectFinalizedListener = onObjectFinalized(
  */
 export const objectDeletedListener = onObjectDeleted(
   { bucket: DEFAULT_BUCKET_NAME },
-  async () => {
-    try {
-      await syncAndCompile();
+  async (event) => {
+    if (event.data.name.includes('source')) {
+      try {
+        await syncAndCompile();
 
-      if (cloudExecute) {
-        await cloudExecute.clearCache();
+        if (cloudExecute) {
+          await cloudExecute.clearCache();
+        }
+      } catch (error) {
+        logger.error('Error syncing and compiling', error);
       }
-    } catch (error) {
-      logger.error('Error syncing and compiling', error);
     }
   },
 );
