@@ -77,15 +77,18 @@ export class CloudStorage implements IStorage {
 
   /**
    * Gets all the files in a bucket
+   *
+   * @param {string|undefined} prefix - The prefix or directory to search for files. e.g. 'source/'
+   * @param {string|undefined} buckeName - The name of the bucket to search for files. e.g. 'my-bucket'
    */
-  getFiles$(buckeName?: string): Observable<StorageFile[]> {
+  getFiles$(prefix?: string, buckeName?: string): Observable<StorageFile[]> {
     const bucket = this.getBucket(buckeName);
 
-    return from(bucket.getFiles()).pipe(
+    return from(bucket.getFiles({ prefix })).pipe(
       mergeMap((download) => from(download[0])),
       mergeMap(async (file) => {
         const download = await file.download();
-        return new StorageFile(download, file.name);
+        return new StorageFile(download, file.name.split('/').at(-1)!);
       }),
       catchError((error) => {
         throw new DownloadError(
@@ -100,8 +103,8 @@ export class CloudStorage implements IStorage {
   /**
    * Wraps {@link getFiles$} in a promise
    */
-  getFiles(buckeName?: string): Promise<StorageFile[]> {
-    return lastValueFrom(this.getFiles$(buckeName));
+  getFiles(prefix?: string, buckeName?: string): Promise<StorageFile[]> {
+    return lastValueFrom(this.getFiles$(prefix, buckeName));
   }
 
   /**

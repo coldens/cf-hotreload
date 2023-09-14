@@ -8,22 +8,24 @@ import {
 import { switchMap } from 'rxjs';
 import { CloudExecuteFactory } from './app/executable/CloudExecuteFactory';
 import { CloudStorage } from './app/storage/CloudStorage';
+import { compile } from './compile';
+import { COMPILED_FILE_NAME } from './consts/COMPILED_FILE_NAME';
 import { DEFAULT_BUCKET_NAME } from './consts/DEFAULT_BUCKET';
-import { DEFAULT_FILE_NAME } from './consts/DEFAULT_FILE_NAME';
 import { syncFolder } from './syncFolder';
 
 initializeApp();
+
+const cloudExecute = new CloudExecuteFactory(new CloudStorage());
 
 /**
  * Cloud function that executes a GCS-hosted script
  */
 export const cfExecute = onRequest((request, response) => {
-  const cloudExecute = new CloudExecuteFactory(new CloudStorage());
-
   logger.info('Executing the function...');
 
-  const fileName = (request.query.fileName as string) || DEFAULT_FILE_NAME;
-  const bucketName = (request.query.bucket as string) || DEFAULT_BUCKET_NAME;
+  const fileName =
+    <string>request.query.fileName || `out/${COMPILED_FILE_NAME}`;
+  const bucketName = <string>request.query.bucket || DEFAULT_BUCKET_NAME;
 
   cloudExecute
     .create$(fileName, bucketName)
@@ -44,10 +46,26 @@ export const cfExecute = onRequest((request, response) => {
 
 export const objectFinalizedListener = onObjectFinalized(
   { bucket: DEFAULT_BUCKET_NAME },
-  () => syncFolder(),
+  () => syncAndCompile(),
 );
 
 export const objectDeletedListener = onObjectDeleted(
   { bucket: DEFAULT_BUCKET_NAME },
-  () => syncFolder(),
+  () => syncAndCompile(),
 );
+
+export const runSyncAndCompile = onRequest(async (req, res) => {
+  try {
+    await syncAndCompile();
+    res.send({ success: true });
+  } catch (error) {
+    logger.error('Error syncing and compiling', error);
+    res.status(500).send('Error syncing and compiling, see logs.');
+  }
+});
+
+async function syncAndCompile() {
+  await syncFolder();
+  await compile();
+  cloudExecute.clearCache();
+}

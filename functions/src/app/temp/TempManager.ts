@@ -1,5 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import path = require('node:path');
-import { existsSync } from 'node:fs';
 import { mkdir, rm, unlink, writeFile } from 'node:fs/promises';
 import { IStorage } from '../storage/IStorage';
 import * as logger from 'firebase-functions/logger';
@@ -10,26 +10,32 @@ type FileParams = {
   bucketName?: string;
 };
 
+type WriteParams = FileParams & {
+  fileContent: string;
+};
+
 export class TempManager {
-  readonly tempFolder = path.resolve('./hot-reload/source');
+  readonly tempFolder = path.resolve('./hot-reload');
+  readonly sourceFolder = path.join(this.tempFolder, './source');
 
   constructor(private readonly storage: IStorage) {}
 
   getFilePath(fileName: string) {
-    return path.join(this.tempFolder, fileName);
+    return path.join(this.sourceFolder, fileName);
   }
 
-  async writeFile({ fileName, bucketName, fileContent }: FileParams) {
-    const file = await this.storage.getFile(fileName, bucketName);
+  async writeFile({ fileName, fileContent }: WriteParams) {
     const filePath = this.getFilePath(fileName);
+    try {
+      await writeFile(filePath, fileContent, {
+        encoding: 'utf-8',
+      });
 
-    // validate if directory exists
-    if (!existsSync(this.tempFolder)) {
-      await mkdir(this.tempFolder, { recursive: true });
+      logger.info('File written', { fileName });
+    } catch (error) {
+      logger.error('Error writing file', { fileName, fileContent }, error);
+      throw error;
     }
-
-    await writeFile(filePath, fileContent ?? file.stream());
-    logger.info('File written', { fileName });
   }
 
   async deleteFile({ fileName }: FileParams) {
@@ -39,12 +45,19 @@ export class TempManager {
   }
 
   async syncFolder() {
-    const files = await this.storage.getFiles();
+    const files = await this.storage.getFiles('source/');
+
+    // Delete temporal folder if it exists
     await rm(this.tempFolder, { recursive: true, force: true });
+    await mkdir(this.tempFolder);
+    await mkdir(this.sourceFolder);
 
     for (const file of files) {
       const fileContent = await file.text();
-      await this.writeFile({ fileName: file.fileName, fileContent });
+
+      if (fileContent && file.fileName) {
+        await this.writeFile({ fileName: file.fileName, fileContent });
+      }
     }
   }
 }
