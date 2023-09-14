@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import path = require('node:path');
 import { mkdir, rm, unlink, writeFile } from 'node:fs/promises';
-import { IStorage } from '../storage/IStorage';
+import { IStorage } from '../storage/IStorage.js';
 import * as logger from 'firebase-functions/logger';
 
 type FileParams = {

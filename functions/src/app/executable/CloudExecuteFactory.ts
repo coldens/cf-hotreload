@@ -1,9 +1,10 @@
 import { Observable, lastValueFrom, map, of, switchMap, tap } from 'rxjs';
-import { IsNotExecutableError } from '../errors/IsNotExecutableError';
-import { IStorage } from '../storage/IStorage';
-import { IExecutable } from './IExecutable';
-import { IExecuteFactory } from './IExecuteFactory';
-import { DEFAULT_KEY } from '../../consts/DEFAULT_KEY';
+import { DEFAULT_KEY } from '../../consts/DEFAULT_KEY.js';
+import { IsNotExecutableError } from '../errors/IsNotExecutableError.js';
+import { IStorage } from '../storage/IStorage.js';
+import { IExecutable } from './IExecutable.js';
+import { IExecuteFactory } from './IExecuteFactory.js';
+import { requireFromString } from 'module-from-string';
 
 type CacheType = Record<string, Record<string, string>>;
 
@@ -23,7 +24,9 @@ export class CloudExecuteFactory implements IExecuteFactory {
   create$(fileName: string, bucket?: string): Observable<IExecutable> {
     return this.getCache$(fileName, bucket).pipe(
       map((value) => {
-        const obj: IExecutable = eval(value);
+        const obj = requireFromString(value, {
+          useCurrentGlobal: true,
+        }) as IExecutable;
 
         if (typeof obj.main !== 'function') {
           throw new IsNotExecutableError(

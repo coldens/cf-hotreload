@@ -1,5 +1,5 @@
 import { Observable } from 'rxjs';
-import { StorageFile } from './StorageFile';
+import { StorageFile } from './StorageFile.js';
 
 export interface IStorage {
   getFile(fileName: string, bucket?: string): Promise<StorageFile>;

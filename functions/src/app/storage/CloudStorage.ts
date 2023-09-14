@@ -9,10 +9,10 @@ import {
   switchMap,
   toArray,
 } from 'rxjs';
-import { DownloadError } from '../errors/DownloadError';
-import { IStorage } from './IStorage';
-import { StorageFile } from './StorageFile';
-import { UploadError } from '../errors/UploadError';
+import { DownloadError } from '../errors/DownloadError.js';
+import { IStorage } from './IStorage.js';
+import { StorageFile } from './StorageFile.js';
+import { UploadError } from '../errors/UploadError.js';
 
 /**
  * This class is a wrapper around the firebase-admin/storage module

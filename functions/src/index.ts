@@ -6,12 +6,11 @@ import {
   onObjectFinalized,
 } from 'firebase-functions/v2/storage';
 import { switchMap } from 'rxjs';
-import { CloudExecuteFactory } from './app/executable/CloudExecuteFactory';
-import { CloudStorage } from './app/storage/CloudStorage';
-import { compile } from './compile';
-import { COMPILED_FILE_NAME } from './consts/COMPILED_FILE_NAME';
-import { DEFAULT_BUCKET_NAME } from './consts/DEFAULT_BUCKET';
-import { syncFolder } from './syncFolder';
+import { CloudExecuteFactory } from './app/executable/CloudExecuteFactory.js';
+import { CloudStorage } from './app/storage/CloudStorage.js';
+import { syncAndCompile } from './compile.js';
+import { COMPILED_FILE_NAME } from './consts/COMPILED_FILE_NAME.js';
+import { DEFAULT_BUCKET_NAME } from './consts/DEFAULT_BUCKET.js';
 
 initializeApp();
 
@@ -46,17 +45,17 @@ export const cfExecute = onRequest((request, response) => {
 
 export const objectFinalizedListener = onObjectFinalized(
   { bucket: DEFAULT_BUCKET_NAME },
-  () => syncAndCompile(),
+  () => refreshCache(),
 );
 
 export const objectDeletedListener = onObjectDeleted(
   { bucket: DEFAULT_BUCKET_NAME },
-  () => syncAndCompile(),
+  () => refreshCache(),
 );
 
 export const runSyncAndCompile = onRequest(async (req, res) => {
   try {
-    await syncAndCompile();
+    await refreshCache();
     res.send({ success: true });
   } catch (error) {
     logger.error('Error syncing and compiling', error);
@@ -64,8 +63,7 @@ export const runSyncAndCompile = onRequest(async (req, res) => {
   }
 });
 
-async function syncAndCompile() {
-  await syncFolder();
-  await compile();
+async function refreshCache() {
+  await syncAndCompile();
   cloudExecute.clearCache();
 }

@@ -1,24 +1,21 @@
 import * as logger from 'firebase-functions/logger';
-import { CloudCompiler } from './app/compiler/CloudCompiler';
-import { CloudStorage } from './app/storage/CloudStorage';
+import { catchError, from, lastValueFrom, switchMap } from 'rxjs';
+import { CloudCompiler } from './app/compiler/CloudCompiler.js';
 
 /**
- * compile and upload a file to GCS
+ * Syncs the source code from the bucket and compiles it, then uploads it to the bucket
  */
-export async function compile() {
-  const compiler = new CloudCompiler(new CloudStorage());
+export async function syncAndCompile() {
+  const compiler = new CloudCompiler();
 
-  try {
-    logger.info(`Compiling...`);
-    await compiler.compile();
-  } catch (error) {
-    logger.error(`Error compiling`, error);
-  }
+  const observe = from(compiler.download()).pipe(
+    switchMap(async () => compiler.compile()),
+    switchMap(async () => compiler.upload()),
+    catchError((error) => {
+      logger.error(`Error syncing and compiling`, error);
+      throw error;
+    }),
+  );
 
-  try {
-    await compiler.upload();
-    logger.info(`Uploaded!`);
-  } catch (error) {
-    logger.error(`Error uploading`, error);
-  }
+  return lastValueFrom(observe);
 }

@@ -1,5 +1,5 @@
 import { Observable } from 'rxjs';
-import { IExecutable } from './IExecutable';
+import { IExecutable } from './IExecutable.js';
 
 export interface IExecuteFactory {
   /**

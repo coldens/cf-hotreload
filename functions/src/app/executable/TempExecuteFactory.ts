@@ -1,8 +1,8 @@
 import { readFile } from 'node:fs/promises';
 import { Observable, lastValueFrom, of, switchMap } from 'rxjs';
-import { TempManager } from '../temp/TempManager';
-import { IExecutable } from './IExecutable';
-import { IExecuteFactory } from './IExecuteFactory';
+import { TempManager } from '../temp/TempManager.js';
+import { IExecutable } from './IExecutable.js';
+import { IExecuteFactory } from './IExecuteFactory.js';
 
 export class TempExecuteFactory implements IExecuteFactory {
   constructor(private readonly manager: TempManager) {}
