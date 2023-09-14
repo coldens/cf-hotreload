@@ -17,8 +17,8 @@ pnpm run serve
 Make sure to create your own `.env` file with the following variables:
 
 ```bash
-GCLOUD_BUCKET_NAME=name-of-the-bucket
-CF_EXTERNAL_FILE_NAME=name-of-the-file.js
+# GCLOUD_BUCKET_NAME=name-of-the-bucket # optional, if you want to use a different bucket than the default one
+COMPILED_FILE_NAME=compiled.js # This file will be compiled based on the source code in the source folder of the bucket
 ```
 
 There is a sample file in the root folder called `.env.example` that you can use as a template.

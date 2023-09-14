@@ -2,6 +2,7 @@ import { IsNotExecutableError } from '@/app/errors/IsNotExecutableError';
 import { CloudExecuteFactory } from '@/app/executable/CloudExecuteFactory';
 import { IExecutable } from '@/app/executable/IExecutable';
 import { StorageFile } from '@/app/storage/StorageFile';
+import { caching } from 'cache-manager';
 import { lastValueFrom, of } from 'rxjs';
 import { beforeEach, describe, expect, it, vitest } from 'vitest';
 
@@ -14,8 +15,9 @@ describe('CloudExecuteFactory', () => {
   };
   let factory: CloudExecuteFactory;
 
-  beforeEach(() => {
-    factory = new CloudExecuteFactory(storage);
+  beforeEach(async () => {
+    const cache = await caching('memory');
+    factory = new CloudExecuteFactory(storage, cache);
   });
 
   describe('create$', () => {

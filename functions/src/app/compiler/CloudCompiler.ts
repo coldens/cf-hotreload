@@ -9,12 +9,17 @@ import { UploadError } from '../errors/UploadError.js';
 import path = require('node:path');
 
 export class CloudCompiler {
-  readonly parent = path.resolve('./hot-reload');
-  readonly destination = path.join(this.parent, '/source');
-  readonly sourceFile = path.join(this.destination, '/index.js');
-  readonly outFile = path.join(this.parent, '/out/' + COMPILED_FILE_NAME);
+  readonly parent: string;
+  readonly destination: string;
+  readonly sourceFile: string;
+  readonly outFile: string;
 
-  constructor(private readonly bucket = getStorage().bucket()) {}
+  constructor(private readonly bucket = getStorage().bucket()) {
+    this.parent = path.resolve('./hot-reload');
+    this.destination = path.join(this.parent, '/source');
+    this.sourceFile = path.join(this.destination, '/index.js');
+    this.outFile = path.join(this.parent, '/out/' + COMPILED_FILE_NAME);
+  }
 
   async compile() {
     try {
@@ -50,7 +55,7 @@ export class CloudCompiler {
         }
       }
     } catch (err) {
-      throw new UploadError('Failed to upload', err as Error);
+      throw new DownloadError('Failed to download', err as Error);
     }
   }
 
@@ -60,7 +65,7 @@ export class CloudCompiler {
       const fileData = await readFile(compiledFile);
       await this.bucket.file('out/' + COMPILED_FILE_NAME).save(fileData);
     } catch (err) {
-      throw new DownloadError('Failed to upload', err as Error);
+      throw new UploadError('Failed to upload', err as Error);
     }
   }
 }

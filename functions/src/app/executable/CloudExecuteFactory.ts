@@ -1,6 +1,6 @@
 import { Cache } from 'cache-manager';
 import { requireFromString } from 'module-from-string';
-import { Observable, from, lastValueFrom, map, switchMap } from 'rxjs';
+import { Observable, from, lastValueFrom, map, of, switchMap, tap } from 'rxjs';
 import { IsNotExecutableError } from '../errors/IsNotExecutableError.js';
 import { IStorage } from '../storage/IStorage.js';
 import { IExecutable } from './IExecutable.js';
@@ -22,15 +22,14 @@ export class CloudExecuteFactory implements IExecuteFactory {
     const getCached = this.cache.get<string>(`${bucket}-${fileName}`);
 
     return from(getCached).pipe(
-      switchMap(async (value) => {
+      switchMap((value) => {
         if (value) {
-          return value;
+          return of(value);
         }
-
-        const file = await this.storage.getFile(fileName, bucket);
-        const text = await file.text();
-        this.cache.set(`${bucket}-${fileName}`, text);
-        return text;
+        return this.storage.getFile$(fileName, bucket).pipe(
+          switchMap((file) => file.text()),
+          tap((text) => this.cache.set(`${bucket}-${fileName}`, text)),
+        );
       }),
       map((value) => {
         const obj = requireFromString(value, {
