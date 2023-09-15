@@ -2,10 +2,7 @@ import { caching } from 'cache-manager';
 import { initializeApp } from 'firebase-admin/app';
 import * as logger from 'firebase-functions/logger';
 import { onRequest } from 'firebase-functions/v2/https';
-import {
-  onObjectDeleted,
-  onObjectFinalized,
-} from 'firebase-functions/v2/storage';
+import { onObjectFinalized } from 'firebase-functions/v2/storage';
 import { CloudExecuteFactory } from './app/executable/CloudExecuteFactory.js';
 import { CloudStorage } from './app/storage/CloudStorage.js';
 import { syncAndCompile } from './compile.js';
@@ -72,26 +69,6 @@ export const runSyncAndCompile = onRequest(async (req, res) => {
  * Cloud function that syncs and compiles the source code
  */
 export const objectFinalizedListener = onObjectFinalized(
-  { bucket: DEFAULT_BUCKET_NAME },
-  async (event) => {
-    if (event.data.name.includes('source')) {
-      try {
-        await syncAndCompile();
-
-        if (cloudExecute) {
-          await cloudExecute.clearCache();
-        }
-      } catch (error) {
-        logger.error('Error syncing and compiling', error);
-      }
-    }
-  },
-);
-
-/**
- * Cloud function that syncs and compiles the source code
- */
-export const objectDeletedListener = onObjectDeleted(
   { bucket: DEFAULT_BUCKET_NAME },
   async (event) => {
     if (event.data.name.includes('source')) {

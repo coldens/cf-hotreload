@@ -19,16 +19,17 @@ export class CloudExecuteFactory implements IExecuteFactory {
    * Creates an Executable object from a js file hosted in GCS
    */
   create$(fileName: string, bucket?: string): Observable<IExecutable> {
-    const getCached = this.cache.get<string>(`${bucket}-${fileName}`);
+    const cacheKey = `bucket:${bucket}/fileName:${fileName}`;
+    const cacheValue = this.cache.get<string>(cacheKey);
 
-    return from(getCached).pipe(
+    return from(cacheValue).pipe(
       switchMap((value) => {
         if (value) {
           return of(value);
         }
         return this.storage.getFile$(fileName, bucket).pipe(
           switchMap((file) => file.text()),
-          tap((text) => this.cache.set(`${bucket}-${fileName}`, text)),
+          tap((text) => this.cache.set(cacheKey, text)),
         );
       }),
       map((value) => {
